@@ -1,0 +1,12 @@
+[package]
+name = "carteira-investimentos"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.102"
+axum = { version = "0.8.9", features = ["macros"] }
+axum-tracing-opentelemetry = "0.38.0"
+init-tracing-opentelemetry = { version = "0.38.1", features = ["tracing_subscriber_ext"] }
+tokio = { version = "1.52.3", features = ["rt-multi-thread", "macros", "signal"] }
+tracing = "0.1.44"
