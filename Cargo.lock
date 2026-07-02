@@ -228,6 +228,7 @@ dependencies = [
  "axum",
  "axum-tracing-opentelemetry",
  "init-tracing-opentelemetry",
+ "serde",
  "sqlx",
  "tokio",
  "tracing",
