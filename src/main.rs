@@ -2,15 +2,16 @@ use axum::serve;
 use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
 use carteira_investimentos::AppState;
 use carteira_investimentos::routes::create_router;
+use dotenvy::dotenv;
 use init_tracing_opentelemetry::TracingConfig;
 use sqlx::PgPool;
 use std::env;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use tracing::info;
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    dotenv().ok();
     let pool = PgPool::connect(
         env::var("DATABASE_URL")
             .expect("DATABASE_URL não existe.")

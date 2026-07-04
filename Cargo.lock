@@ -227,6 +227,7 @@ dependencies = [
  "anyhow",
  "axum",
  "axum-tracing-opentelemetry",
+ "dotenvy",
  "init-tracing-opentelemetry",
  "serde",
  "sqlx",
