@@ -1,5 +1,7 @@
+use crate::extractors::ValidatedJson;
 use crate::models::users_model::{self, CreateUserModel};
 use crate::{AppState, Response};
+use anyhow::anyhow;
 use argon2::{
     Argon2, PasswordHasher,
     password_hash::{SaltString, rand_core::OsRng},
@@ -30,22 +32,23 @@ pub struct CreateUserResponse {
 #[instrument(skip(state, body), fields(username = %body.username, email = %body.email))]
 pub async fn create_user(
     State(state): State<AppState>,
-    Json(body): Json<CreateUserRequest>,
+    ValidatedJson(body): ValidatedJson<CreateUserRequest>,
 ) -> Response<CreateUserResponse> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
     let password_hash = argon2
         .hash_password(body.password.as_bytes(), &salt)
-        .expect("Falha ao gerar o hash da senha")
+        .map_err(|error| {
+            tracing::error!("Erro ao gerar hash da senha: {:?}", error);
+            anyhow!("Erro ao gerar hash da senha")
+        })?
         .to_string();
     let user_model = CreateUserModel {
         username: body.username,
         email: body.email,
         password_hash,
     };
-    let user = users_model::create_user(&state.pool, user_model)
-        .await
-        .expect("Falha ao criar usuário");
+    let user = users_model::create_user(&state.pool, user_model).await?;
     Ok((
         StatusCode::CREATED,
         Json(CreateUserResponse {
