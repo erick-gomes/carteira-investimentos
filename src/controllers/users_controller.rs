@@ -1,9 +1,10 @@
-use crate::AppState;
 use crate::models::users_model::{self, CreateUserModel};
+use crate::{AppState, Response};
 use argon2::{
     Argon2, PasswordHasher,
     password_hash::{SaltString, rand_core::OsRng},
 };
+use axum::http::StatusCode;
 use axum::{Json, extract::State};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
@@ -30,7 +31,7 @@ pub struct CreateUserResponse {
 pub async fn create_user(
     State(state): State<AppState>,
     Json(body): Json<CreateUserRequest>,
-) -> Json<CreateUserResponse> {
+) -> Response<CreateUserResponse> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
     let password_hash = argon2
@@ -45,9 +46,12 @@ pub async fn create_user(
     let user = users_model::create_user(&state.pool, user_model)
         .await
         .expect("Falha ao criar usuário");
-    Json(CreateUserResponse {
-        id: user.id.to_string(),
-        username: user.username,
-        email: user.email,
-    })
+    Ok((
+        StatusCode::CREATED,
+        Json(CreateUserResponse {
+            id: user.id.to_string(),
+            username: user.username,
+            email: user.email,
+        }),
+    ))
 }

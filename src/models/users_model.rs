@@ -14,7 +14,6 @@ pub struct CreateUserModel {
     pub email: String,
     pub password_hash: String,
 }
-
 pub async fn create_user(pool: &PgPool, user: CreateUserModel) -> Result<UserModel, sqlx::Error> {
     let id = Uuid::now_v7();
     let user = sqlx::query_as!(
