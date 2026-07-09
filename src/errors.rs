@@ -22,6 +22,9 @@ pub enum AppError {
 
     #[error("{0}")]
     Conflict(String),
+
+    #[error("{0}")]
+    BadRequest(String),
 }
 
 #[derive(Serialize)]
@@ -57,6 +60,9 @@ impl IntoResponse for AppError {
                 .into_response(),
             AppError::Conflict(message) => {
                 (StatusCode::CONFLICT, Json(ErrorResponse::new([message]))).into_response()
+            }
+            AppError::BadRequest(message) => {
+                (StatusCode::BAD_REQUEST, Json(ErrorResponse::new([message]))).into_response()
             }
         }
     }
