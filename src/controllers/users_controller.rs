@@ -1,3 +1,5 @@
+use crate::database::errors::PostgresError;
+use crate::errors::AppError;
 use crate::extractors::ValidatedJson;
 use crate::models::users_model::{self, CreateUserModel};
 use crate::{AppState, Response};
@@ -48,7 +50,21 @@ pub async fn create_user(
         email: body.email,
         password_hash,
     };
-    let user = users_model::create_user(&state.pool, user_model).await?;
+    let user = users_model::create_user(&state.pool, user_model)
+        .await
+        .map_err(|error| {
+            tracing::error!("Erro ao criar usuário: {:?}", error);
+            let db_error_code = error
+                .as_database_error()
+                .and_then(|db_err| db_err.code())
+                .map(|code| PostgresError::from(code.as_ref()));
+            match db_error_code {
+                Some(PostgresError::UniqueViolation) => AppError::Conflict(
+                    "O e-mail ou nome de usuário informado já está em uso".to_string(),
+                ),
+                _ => AppError::Database(error),
+            }
+        })?;
     Ok((
         StatusCode::CREATED,
         Json(CreateUserResponse {

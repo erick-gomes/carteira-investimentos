@@ -19,6 +19,9 @@ pub enum AppError {
 
     #[error("Erro interno do sistema")]
     InternalServer(#[from] anyhow::Error),
+
+    #[error("{0}")]
+    Conflict(String),
 }
 
 #[derive(Serialize)]
@@ -52,6 +55,9 @@ impl IntoResponse for AppError {
                 Json(ErrorResponse::new([error.to_string()])),
             )
                 .into_response(),
+            AppError::Conflict(message) => {
+                (StatusCode::CONFLICT, Json(ErrorResponse::new([message]))).into_response()
+            }
         }
     }
 }
