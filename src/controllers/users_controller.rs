@@ -1,13 +1,9 @@
-use crate::database::errors::PostgresError;
 use crate::errors::AppError;
+use crate::errors::PostgresError;
 use crate::extractors::ValidatedJson;
 use crate::models::users_model::{self, CreateUserModel};
+use crate::utils::generate_hash;
 use crate::{AppState, Response};
-use anyhow::anyhow;
-use argon2::{
-    Argon2, PasswordHasher,
-    password_hash::{SaltString, rand_core::OsRng},
-};
 use axum::http::StatusCode;
 use axum::{Json, extract::State};
 use serde::{Deserialize, Serialize};
@@ -55,15 +51,7 @@ pub async fn create_user(
         ));
     }
 
-    let salt = SaltString::generate(&mut OsRng);
-    let argon2 = Argon2::default();
-    let password_hash = argon2
-        .hash_password(body.password.as_bytes(), &salt)
-        .map_err(|error| {
-            tracing::error!("Erro ao gerar hash da senha: {:?}", error);
-            anyhow!("Erro ao gerar hash da senha")
-        })?
-        .to_string();
+    let password_hash = generate_hash(&body.password)?;
     let user_model = CreateUserModel {
         username: username_normalizado,
         email: email_normalizado,

@@ -2,11 +2,11 @@ use axum::{Json, http::StatusCode};
 use sqlx::PgPool;
 
 pub mod controllers;
-pub mod database;
 pub mod errors;
 pub mod extractors;
 pub mod models;
 pub mod routes;
+pub mod utils;
 
 #[derive(Clone, Debug)]
 pub struct AppState {

@@ -6,6 +6,21 @@ use serde::Serialize;
 use thiserror::Error;
 use validator::ValidationErrors;
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum PostgresError {
+    UniqueViolation,
+    Unknown,
+}
+
+impl From<&str> for PostgresError {
+    fn from(code: &str) -> Self {
+        match code {
+            "23505" => PostgresError::UniqueViolation,
+            _ => PostgresError::Unknown,
+        }
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum AppError {
     #[error("Erro de validação: {0}")]
