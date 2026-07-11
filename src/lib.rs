@@ -11,6 +11,7 @@ pub mod utils;
 #[derive(Clone, Debug)]
 pub struct AppState {
     pub pool: PgPool,
+    pub jwt_secret: String,
 }
 
 pub type Response<T> = Result<(StatusCode, Json<T>), errors::AppError>;

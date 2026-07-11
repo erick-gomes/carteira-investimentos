@@ -22,7 +22,10 @@ async fn main() -> anyhow::Result<()> {
     let address = SocketAddr::from(([127, 0, 0, 1], 8080));
     let listener = TcpListener::bind(address).await?;
 
-    let app_state = AppState { pool };
+    let app_state = AppState {
+        pool,
+        jwt_secret: env::var("JWT_SECRET").expect("JWT_SECRET não existe."),
+    };
     let router = create_router()
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())

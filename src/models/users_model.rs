@@ -38,3 +38,38 @@ pub async fn create_user(pool: &PgPool, user: CreateUserModel) -> Result<UserMod
 
     Ok(user)
 }
+
+pub async fn get_user_by_username(
+    pool: &PgPool,
+    username: &str,
+) -> Result<Option<UserModel>, sqlx::Error> {
+    let user = sqlx::query_as!(
+        UserModel,
+        r#"
+            SELECT id, username, email, password_hash, created_at, updated_at
+            FROM users
+            WHERE username = $1
+            "#,
+        username
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(user)
+}
+
+pub async fn get_user_by_id(pool: &PgPool, id: Uuid) -> Result<Option<UserModel>, sqlx::Error> {
+    let user = sqlx::query_as!(
+        UserModel,
+        r#"
+            SELECT id, username, email, password_hash, created_at, updated_at
+            FROM users
+            WHERE id = $1
+            "#,
+        id
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(user)
+}

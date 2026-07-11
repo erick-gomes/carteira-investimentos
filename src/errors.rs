@@ -40,6 +40,9 @@ pub enum AppError {
 
     #[error("{0}")]
     BadRequest(String),
+
+    #[error("Não autorizado")]
+    Unauthorized,
 }
 
 #[derive(Serialize)]
@@ -79,6 +82,11 @@ impl IntoResponse for AppError {
             AppError::BadRequest(message) => {
                 (StatusCode::BAD_REQUEST, Json(ErrorResponse::new([message]))).into_response()
             }
+            AppError::Unauthorized => (
+                StatusCode::UNAUTHORIZED,
+                Json(ErrorResponse::new(["Não autorizado"])),
+            )
+                .into_response(),
         }
     }
 }

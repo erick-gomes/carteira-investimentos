@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use argon2::{
-    Argon2, PasswordHasher,
+    Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
     password_hash::{SaltString, rand_core::OsRng},
 };
 
@@ -15,4 +15,16 @@ pub fn generate_hash(password: &str) -> Result<String, anyhow::Error> {
         })?
         .to_string();
     Ok(password_hash)
+}
+
+pub fn verify_password(password: &str, password_hash: &str) -> Result<bool, anyhow::Error> {
+    let argon2 = Argon2::default();
+    match argon2.verify_password(password.as_bytes(), &PasswordHash::new(&password_hash)?) {
+        Ok(_) => Ok(true),
+        Err(argon2::password_hash::Error::Password) => Ok(false),
+        Err(error) => {
+            tracing::error!("Erro ao verificar senha: {:?}", error);
+            Err(anyhow!("Erro ao verificar senha"))
+        }
+    }
 }

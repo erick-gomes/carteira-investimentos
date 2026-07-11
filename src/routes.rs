@@ -1,6 +1,6 @@
 use crate::{
     AppState,
-    controllers::{health_controller, users_controller},
+    controllers::{auth_controller, health_controller, users_controller},
 };
 use axum::{
     Router,
@@ -12,7 +12,9 @@ pub fn create_router() -> Router<AppState> {
         "/api/v1",
         Router::new()
             .route("/health", get(health_controller::health_check))
-            .route("/users", post(users_controller::create_user)),
+            .route("/users", post(users_controller::create_user))
+            .route("/auth/login", post(auth_controller::authenticate_user))
+            .route("/auth/refresh", post(auth_controller::refresh_access_token)),
     );
     router
 }
