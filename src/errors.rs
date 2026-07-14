@@ -43,6 +43,9 @@ pub enum AppError {
 
     #[error("Não autorizado")]
     Unauthorized,
+
+    #[error("Usuários não existe.")]
+    UserIsNotExists,
 }
 
 #[derive(Serialize)]
@@ -85,6 +88,11 @@ impl IntoResponse for AppError {
             AppError::Unauthorized => (
                 StatusCode::UNAUTHORIZED,
                 Json(ErrorResponse::new(["Não autorizado"])),
+            )
+                .into_response(),
+            AppError::UserIsNotExists => (
+                StatusCode::NOT_FOUND,
+                Json(ErrorResponse::new([self.to_string()])),
             )
                 .into_response(),
         }
