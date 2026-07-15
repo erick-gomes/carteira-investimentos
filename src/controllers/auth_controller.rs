@@ -8,7 +8,6 @@ use crate::{
     models::users_model::{get_user_by_id, get_user_by_username},
     utils::verify_password,
 };
-use sqlx::PgPool;
 use anyhow::anyhow;
 use axum::Json;
 use axum::extract::State;
@@ -18,6 +17,7 @@ use chrono::DateTime;
 use jwt_simple::claims::Claims;
 use jwt_simple::prelude::*;
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 use time::Duration as TimeDuration;
 use tracing::instrument;
 use uuid::Uuid;

@@ -1,9 +1,9 @@
 use crate::AppState;
 use crate::controllers::{auth_controller, users_controller};
+use askama::Template;
 use axum::extract::{Form, State};
 use axum::response::{Html, Redirect};
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
-use askama::Template;
 use jwt_simple::prelude::*;
 use serde::Deserialize;
 use time::Duration as TimeDuration;
@@ -49,10 +49,7 @@ pub struct LoginForm {
     pub password: String,
 }
 
-async fn get_authenticated_user(
-    jar: &CookieJar,
-    jwt_secret: &str,
-) -> Result<String, Redirect> {
+async fn get_authenticated_user(jar: &CookieJar, jwt_secret: &str) -> Result<String, Redirect> {
     let access_token = jar
         .get("access_token")
         .map(|cookie| cookie.value().to_string())
@@ -70,17 +67,21 @@ pub async fn index() -> Html<String> {
 
 pub async fn register_form() -> Html<String> {
     Html(
-        RegisterTemplate { error: String::new() }
-            .render()
-            .unwrap(),
+        RegisterTemplate {
+            error: String::new(),
+        }
+        .render()
+        .unwrap(),
     )
 }
 
 pub async fn login_form() -> Html<String> {
     Html(
-        LoginTemplate { error: String::new() }
-            .render()
-            .unwrap(),
+        LoginTemplate {
+            error: String::new(),
+        }
+        .render()
+        .unwrap(),
     )
 }
 
@@ -97,14 +98,12 @@ pub async fn register(
     .await
     {
         Ok(_) => Ok(Redirect::to("/login")),
-        Err(error) => Err(
-            RegisterTemplate {
-                error: error.to_string(),
-            }
-            .render()
-            .map(Html)
-            .unwrap_or_else(|_| Html("<p>Erro ao processar registro</p>".to_string())),
-        ),
+        Err(error) => Err(RegisterTemplate {
+            error: error.to_string(),
+        }
+        .render()
+        .map(Html)
+        .unwrap_or_else(|_| Html("<p>Erro ao processar registro</p>".to_string()))),
     }
 }
 
@@ -136,14 +135,12 @@ pub async fn login(
                 .build();
             Ok((jar.add(access_cookie), Redirect::to("/assets")))
         }
-        Err(error) => Err(
-            LoginTemplate {
-                error: error.to_string(),
-            }
-            .render()
-            .map(Html)
-            .unwrap_or_else(|_| Html("<p>Erro ao processar login</p>".to_string())),
-        ),
+        Err(error) => Err(LoginTemplate {
+            error: error.to_string(),
+        }
+        .render()
+        .map(Html)
+        .unwrap_or_else(|_| Html("<p>Erro ao processar login</p>".to_string()))),
     }
 }
 
@@ -163,7 +160,10 @@ pub async fn logout(jar: CookieJar) -> (CookieJar, Redirect) {
         .max_age(TimeDuration::ZERO)
         .build();
 
-    (jar.add(clear_refresh_cookie).add(clear_access_cookie), Redirect::to("/"))
+    (
+        jar.add(clear_refresh_cookie).add(clear_access_cookie),
+        Redirect::to("/"),
+    )
 }
 
 pub async fn assets(
