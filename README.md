@@ -2,11 +2,11 @@
 ### App full-stack para portfólio de investimentos de usuários.
 Lista de tarefas:
 - [x] Criar uma aplicação web com Rust e Axum;
-- [ ] Organizar rotas e responsabilidades do projeto;
-- [ ] Salvar dados no PostgreSQL com SQLx;
-- [ ] Criar, listar e atualizar ativos;
+- [x] Organizar rotas e responsabilidades do projeto;
+- [x] Salvar dados no PostgreSQL com SQLx;
+- [x] Criar, listar, atualizar e excluir ativos;
 - [x] Cadastrar e autenticar pessoas usuárias;
 - [x] Usar cookies e JWT para manter o acesso autenticado;
 - [ ] Criar páginas HTML com Askama;
 - [x] Executar o banco de dados com Docker;
-- [ ] Testar as principais operações da aplicação.
+- [x] Testar as principais operações da aplicação.

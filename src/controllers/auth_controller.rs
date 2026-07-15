@@ -147,7 +147,7 @@ pub async fn refresh_access_token(
                 .http_only(true)
                 .secure(true)
                 .same_site(SameSite::Strict)
-                .max_age(TimeDuration::ZERO) // Expira o cookie na hora
+                .max_age(TimeDuration::ZERO)
                 .build();
 
             (jar.add(clear_cookie), Err(AppError::Unauthorized))

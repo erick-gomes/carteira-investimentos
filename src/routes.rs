@@ -1,10 +1,10 @@
 use crate::{
     AppState,
-    controllers::{auth_controller, health_controller, users_controller},
+    controllers::{assets_controller, auth_controller, health_controller, users_controller},
 };
 use axum::{
     Router,
-    routing::{get, post},
+    routing::{delete, get, patch, post},
 };
 
 pub fn create_router() -> Router<AppState> {
@@ -15,7 +15,11 @@ pub fn create_router() -> Router<AppState> {
             .route("/users", post(users_controller::create_user))
             .route("/auth/login", post(auth_controller::authenticate_user))
             .route("/auth/refresh", post(auth_controller::refresh_access_token))
-            .route("/user/me", get(users_controller::get_user_me)),
+            .route("/user/me", get(users_controller::get_user_me))
+            .route("/assets", get(assets_controller::get_all_assets))
+            .route("/assets", post(assets_controller::create_asset))
+            .route("/assets/{id}", patch(assets_controller::patch_asset))
+            .route("/assets/{id}", delete(assets_controller::delete_asset)),
     );
     router
 }
