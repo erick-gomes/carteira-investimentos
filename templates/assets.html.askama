@@ -1,0 +1,12 @@
+{% extends "layout.html.askama" %}
+
+{% block title %}Meus ativos{% endblock %}
+
+{% block content %}
+<h1>Meus ativos</h1>
+<ul>
+{% for asset in assets %}
+    <li>{{ asset.name }} ({{ asset.ticker }}) - {{ asset.quantity_raw }} unidades</li>
+{% endfor %}
+</ul>
+{% endblock %}

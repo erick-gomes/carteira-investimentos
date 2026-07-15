@@ -50,6 +50,37 @@ async fn send_request(
     service.ready().await.unwrap().call(request).await.unwrap()
 }
 
+async fn send_form_request(
+    app: &Router<()>,
+    method: &Method,
+    uri: &str,
+    body: Option<&str>,
+    bearer: Option<&str>,
+    cookie: Option<&str>,
+) -> Response<Body> {
+    let mut builder = Request::builder().method(method.clone()).uri(uri);
+
+    if let Some(token) = bearer {
+        builder = builder.header(header::AUTHORIZATION, format!("Bearer {}", token));
+    }
+    if let Some(cookie) = cookie {
+        builder = builder.header(header::COOKIE, HeaderValue::from_str(cookie).unwrap());
+    }
+
+    let request = if let Some(body) = body {
+        builder
+            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .body(Body::from(body.to_string()))
+            .unwrap()
+    } else {
+        builder.body(Body::empty()).unwrap()
+    };
+
+    let mut router = app.clone();
+    let mut service = router.as_service::<Body>();
+    service.ready().await.unwrap().call(request).await.unwrap()
+}
+
 fn app_state() -> AppState {
     dotenv().ok();
     let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| {
@@ -120,6 +151,59 @@ async fn public_and_protected_routes_are_registered() {
             uri
         );
     }
+}
+
+#[tokio::test]
+async fn html_routes_are_available() {
+    let app = create_router().with_state(app_state());
+
+    for page in ["/", "/register", "/login"] {
+        let response = send_request(&app, &Method::GET, page, None, None, None).await;
+        assert_eq!(response.status(), StatusCode::OK, "{} should be available", page);
+        let body_bytes = to_bytes(response.into_body(), 65536).await.unwrap();
+        let body_text = String::from_utf8_lossy(&body_bytes);
+        assert!(body_text.contains("<html"), "{} did not return HTML", page);
+    }
+
+    let response = send_request(&app, &Method::GET, "/assets", None, None, None).await;
+    assert_eq!(response.status(), StatusCode::SEE_OTHER, "/assets should redirect when unauthenticated");
+    assert_eq!(response.headers().get(header::LOCATION).unwrap(), "/login");
+}
+
+#[tokio::test]
+async fn html_register_and_login_form_flow_works() {
+    let app = create_router().with_state(app_state());
+    let username = unique_string();
+    let email = format!("{}@example.com", unique_string());
+    let password = "senha123";
+
+    let register_body = format!(
+        "username={}&email={}&password={}",
+        username,
+        email,
+        password
+    );
+
+    let response = send_form_request(&app, &Method::POST, "/register", Some(&register_body), None, None).await;
+    assert_eq!(response.status(), StatusCode::SEE_OTHER);
+    assert_eq!(
+        response.headers().get(header::LOCATION).unwrap(),
+        "/login"
+    );
+
+    let login_body = format!(
+        "username={}&password={}",
+        username,
+        password
+    );
+
+    let response = send_form_request(&app, &Method::POST, "/login", Some(&login_body), None, None).await;
+    assert_eq!(response.status(), StatusCode::SEE_OTHER);
+    assert_eq!(
+        response.headers().get(header::LOCATION).unwrap(),
+        "/assets"
+    );
+    assert!(response.headers().get(header::SET_COOKIE).is_some());
 }
 
 #[tokio::test]

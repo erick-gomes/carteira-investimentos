@@ -64,6 +64,23 @@ pub async fn create_asset(
     Ok(created_asset)
 }
 
+pub async fn get_all_assets(pool: &PgPool) -> Result<Vec<AssetModel>, sqlx::Error> {
+    let assets = sqlx::query_as!(
+        AssetModel,
+        r#"
+        SELECT id, user_id, ticker, name, category, quantity_raw,
+               average_price_cents, currency, last_acquisition_date,
+               created_at, updated_at
+        FROM assets
+        ORDER BY created_at DESC
+        "#,
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(assets)
+}
+
 pub async fn get_assets_by_user(
     pool: &PgPool,
     user_id: Uuid,

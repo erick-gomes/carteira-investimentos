@@ -1,0 +1,15 @@
+{% extends "layout.html.askama" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<h1>Login</h1>
+{% if error != "" %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
+<form action="/login" method="post">
+    <label>Usuário:<br/><input name="username" required/></label><br/>
+    <label>Senha:<br/><input type="password" name="password" required/></label><br/>
+    <button type="submit">Entrar</button>
+</form>
+{% endblock %}

@@ -8,6 +8,7 @@ use crate::utils::generate_hash;
 use crate::{AppState, Response};
 use axum::http::StatusCode;
 use axum::{Json, extract::State};
+use sqlx::PgPool;
 use chrono::DateTime;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -87,6 +88,51 @@ pub async fn create_user(
             updated_at: user.updated_at.to_rfc3339(),
         }),
     ))
+}
+
+pub async fn create_user_internal(
+    pool: &PgPool,
+    username: String,
+    email: String,
+    password: String,
+) -> Result<CreateUserResponse, AppError> {
+    let email_normalizado = email.to_lowercase().trim().to_string();
+    let username_normalizado = username.trim().to_string();
+
+    if username_normalizado.is_empty() || email_normalizado.is_empty() {
+        return Err(AppError::BadRequest(
+            "Nome de usuário e e-mail não podem ser vazios".to_string(),
+        ));
+    }
+
+    let password_hash = generate_hash(&password)?;
+    let user_model = CreateUserModel {
+        username: username_normalizado,
+        email: email_normalizado,
+        password_hash,
+    };
+    let user = users_model::create_user(pool, user_model)
+        .await
+        .map_err(|error| {
+            tracing::error!("Erro ao criar usuário: {:?}", error);
+            let db_error_code = error
+                .as_database_error()
+                .and_then(|db_err| db_err.code())
+                .map(|code| PostgresError::from(code.as_ref()));
+            match db_error_code {
+                Some(PostgresError::UniqueViolation) => AppError::Conflict(
+                    "O e-mail ou nome de usuário informado já está em uso".to_string(),
+                ),
+                _ => AppError::Database(error),
+            }
+        })?;
+    Ok(CreateUserResponse {
+        id: user.id.to_string(),
+        username: user.username,
+        email: user.email,
+        created_at: user.created_at.to_rfc3339(),
+        updated_at: user.updated_at.to_rfc3339(),
+    })
 }
 
 #[derive(Serialize)]

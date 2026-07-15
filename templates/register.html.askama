@@ -1,0 +1,16 @@
+{% extends "layout.html.askama" %}
+
+{% block title %}Cadastrar usuário{% endblock %}
+
+{% block content %}
+<h1>Cadastrar usuário</h1>
+{% if error != "" %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
+<form action="/register" method="post">
+    <label>Usuário:<br/><input name="username" required/></label><br/>
+    <label>E-mail:<br/><input type="email" name="email" required/></label><br/>
+    <label>Senha:<br/><input type="password" name="password" required/></label><br/>
+    <button type="submit">Cadastrar</button>
+</form>
+{% endblock %}

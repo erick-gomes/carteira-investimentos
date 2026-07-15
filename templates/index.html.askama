@@ -1,0 +1,13 @@
+{% extends "layout.html.askama" %}
+
+{% block title %}Carteira de Investimentos{% endblock %}
+
+{% block content %}
+<h1>Carteira de Investimentos</h1>
+<p>Bem-vindo à aplicação de portfólio de investimentos.</p>
+<ul>
+    <li><a href="/register">Cadastrar usuário</a></li>
+    <li><a href="/login">Entrar</a></li>
+    <li><a href="/assets">Meus ativos</a></li>
+</ul>
+{% endblock %}

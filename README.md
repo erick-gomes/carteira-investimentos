@@ -7,6 +7,6 @@ Lista de tarefas:
 - [x] Criar, listar, atualizar e excluir ativos;
 - [x] Cadastrar e autenticar pessoas usuárias;
 - [x] Usar cookies e JWT para manter o acesso autenticado;
-- [ ] Criar páginas HTML com Askama;
+- [x] Criar páginas HTML com Askama;
 - [x] Executar o banco de dados com Docker;
 - [x] Testar as principais operações da aplicação.

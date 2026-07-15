@@ -8,6 +8,7 @@ use crate::{
     models::users_model::{get_user_by_id, get_user_by_username},
     utils::verify_password,
 };
+use sqlx::PgPool;
 use anyhow::anyhow;
 use axum::Json;
 use axum::extract::State;
@@ -43,13 +44,13 @@ pub struct AuthResponse {
     pub access_token: String,
 }
 
-#[instrument]
-pub async fn authenticate_user(
-    State(state): State<AppState>,
+pub async fn authenticate_user_internal(
+    pool: &PgPool,
     jar: CookieJar,
-    ValidatedJson(body): ValidatedJson<AuthRequest>,
+    body: AuthRequest,
+    jwt_secret: &str,
 ) -> Result<(StatusCode, CookieJar, Json<AuthResponse>), AppError> {
-    let user = get_user_by_username(&state.pool, &body.username).await?;
+    let user = get_user_by_username(pool, &body.username).await?;
     let Some(user) = user else {
         return Err(AppError::BadRequest(
             "Usuário ou senha inválidos".to_string(),
@@ -71,13 +72,13 @@ pub async fn authenticate_user(
         .and_then(|seconds| DateTime::from_timestamp(seconds, 0))
         .ok_or(anyhow!("Não foi possível converter o tempo."))?;
 
-    let key = HS256Key::from_bytes(state.jwt_secret.as_bytes());
+    let key = HS256Key::from_bytes(jwt_secret.as_bytes());
 
     let access_token = key.authenticate(claims_access_token)?;
     let refresh_token = key.authenticate(claims_refresh_token)?;
 
     create_refresh_token(
-        &state.pool,
+        pool,
         CreateRefreshTokenModel {
             user_id: user.id,
             token_hash: refresh_token.clone(),
@@ -97,6 +98,15 @@ pub async fn authenticate_user(
         jar.add(cookie),
         Json(AuthResponse { access_token }),
     ))
+}
+
+#[instrument]
+pub async fn authenticate_user(
+    State(state): State<AppState>,
+    jar: CookieJar,
+    ValidatedJson(body): ValidatedJson<AuthRequest>,
+) -> Result<(StatusCode, CookieJar, Json<AuthResponse>), AppError> {
+    authenticate_user_internal(&state.pool, jar, body, &state.jwt_secret).await
 }
 
 #[instrument]
