@@ -1,16 +1,36 @@
 {% extends "layout.html.askama" %}
 
-{% block title %}Cadastrar usuário{% endblock %}
+{% block title %}Criar Conta | Carteira.io{% endblock %}
 
 {% block content %}
-<h1>Cadastrar usuário</h1>
-{% if error != "" %}
-    <p style="color:red;">{{ error }}</p>
-{% endif %}
-<form action="/register" method="post">
-    <label>Usuário:<br/><input name="username" required/></label><br/>
-    <label>E-mail:<br/><input type="email" name="email" required/></label><br/>
-    <label>Senha:<br/><input type="password" name="password" required/></label><br/>
-    <button type="submit">Cadastrar</button>
-</form>
+<div class="glass-card" style="max-width: 480px; margin: 0 auto; text-align: center;">
+    <h1 style="margin-bottom: 0.5rem;">Crie sua Conta</h1>
+    <p style="margin-bottom: 2rem; font-size: 0.95rem;">Cadastre-se para começar a controlar seus investimentos</p>
+
+    {% if error != "" %}
+        <div class="alert-error">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form action="/register" method="post">
+        <div class="form-group">
+            <label for="username">Nome de Usuário</label>
+            <input type="text" id="username" name="username" placeholder="Mínimo de 3 caracteres" required />
+        </div>
+        <div class="form-group">
+            <label for="email">Endereço de E-mail</label>
+            <input type="email" id="email" name="email" placeholder="seuemail@exemplo.com" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 2rem;">
+            <label for="password">Senha de Acesso</label>
+            <input type="password" id="password" name="password" placeholder="Mínimo de 6 caracteres" required />
+        </div>
+        <button type="submit" class="btn" style="width: 100%;">Cadastrar e Iniciar</button>
+    </form>
+    
+    <div style="margin-top: 1.75rem; font-size: 0.9rem; color: var(--text-muted);">
+        Já possui uma conta ativa? <a href="/login" style="color: #818cf8; text-decoration: none; font-weight: 700;">Entrar</a>
+    </div>
+</div>
 {% endblock %}

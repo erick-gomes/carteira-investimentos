@@ -10,14 +10,9 @@ use std::env;
 use tower::{Service, ServiceExt};
 
 fn unique_string() -> String {
-    format!(
-        "uid_{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    )
+    uuid::Uuid::now_v7().to_string().replace("-", "")
 }
+
 
 async fn send_request(
     app: &Router<()>,
@@ -203,7 +198,26 @@ async fn html_register_and_login_form_flow_works() {
         response.headers().get(header::LOCATION).unwrap(),
         "/assets"
     );
-    assert!(response.headers().get(header::SET_COOKIE).is_some());
+    
+    let cookie_header_val = response.headers().get(header::SET_COOKIE).unwrap().to_str().unwrap();
+    // Extract access_token part from cookie string
+    let access_token_cookie = cookie_header_val.split(';').next().unwrap();
+
+    // Now send GET /login with the cookie and check it redirects to /assets
+    let response = send_request(&app, &Method::GET, "/login", None, None, Some(access_token_cookie)).await;
+    assert_eq!(response.status(), StatusCode::SEE_OTHER);
+    assert_eq!(
+        response.headers().get(header::LOCATION).unwrap(),
+        "/assets"
+    );
+
+    // Now send GET /register with the cookie and check it redirects to /assets
+    let response = send_request(&app, &Method::GET, "/register", None, None, Some(access_token_cookie)).await;
+    assert_eq!(response.status(), StatusCode::SEE_OTHER);
+    assert_eq!(
+        response.headers().get(header::LOCATION).unwrap(),
+        "/assets"
+    );
 }
 
 #[tokio::test]

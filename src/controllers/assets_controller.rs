@@ -15,21 +15,76 @@ use validator::Validate;
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateAssetRequest {
+    #[validate(length(
+        min = 1,
+        max = 100,
+        message = "O nome do ativo deve ter entre 1 e 100 caracteres"
+    ))]
     pub name: String,
+
+    #[validate(length(
+        min = 1,
+        max = 50,
+        message = "A categoria deve ter entre 1 e 50 caracteres"
+    ))]
     pub category: String,
+
+    #[validate(length(
+        equal = 3,
+        message = "A moeda deve ser um código de exatamente 3 caracteres (ex: BRL, USD)"
+    ))]
     pub currency: String,
+
+    #[validate(length(
+        min = 1,
+        max = 20,
+        message = "O ticker deve ter entre 1 e 20 caracteres"
+    ))]
     pub ticker: Option<String>,
+
+    #[validate(range(
+        min = 1,
+        message = "A quantidade deve ser maior que zero"
+    ))]
     pub quantity_raw: i64,
+
+    #[validate(range(
+        min = 0,
+        message = "O preço médio não pode ser negativo"
+    ))]
     pub average_price_cents: i64,
+
     pub last_acquisition_date: NaiveDate,
 }
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct PatchAssetRequest {
+    #[validate(length(
+        min = 1,
+        max = 100,
+        message = "O nome do ativo deve ter entre 1 e 100 caracteres"
+    ))]
     pub name: Option<String>,
+
+    #[validate(length(
+        min = 1,
+        max = 50,
+        message = "A categoria deve ter entre 1 e 50 caracteres"
+    ))]
     pub category: Option<String>,
+
+    #[validate(range(
+        min = 1,
+        message = "A quantidade deve ser maior que zero"
+    ))]
     pub quantity_raw: Option<i64>,
+
+    #[validate(range(
+        min = 0,
+        message = "O preço médio não pode ser negativo"
+    ))]
     pub average_price_cents: Option<i64>,
+
     pub last_acquisition_date: Option<NaiveDate>,
 }
 

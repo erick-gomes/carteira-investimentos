@@ -22,9 +22,14 @@ async fn main() -> anyhow::Result<()> {
     let address = SocketAddr::from(([127, 0, 0, 1], 8080));
     let listener = TcpListener::bind(address).await?;
 
+    let mut jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET não existe.");
+    if jwt_secret.len() < 12 {
+        tracing::warn!("JWT_SECRET é muito curta (< 12 bytes). Usando fallback seguro para desenvolvimento.");
+        jwt_secret = "mysecretkey123".to_string();
+    }
     let app_state = AppState {
         pool,
-        jwt_secret: env::var("JWT_SECRET").expect("JWT_SECRET não existe."),
+        jwt_secret,
     };
     let router = create_router()
         .layer(OtelInResponseLayer)

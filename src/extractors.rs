@@ -34,18 +34,33 @@ impl FromRequestParts<AppState> for AuthenticatedUser {
         parts: &mut Parts,
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
-        let auth_header = parts
+        let token = if let Some(auth_header) = parts
             .headers
             .get(header::AUTHORIZATION)
             .and_then(|header| header.to_str().ok())
-            .ok_or(AppError::Unauthorized)?;
-        if !auth_header.starts_with("Bearer ") {
+        {
+            if !auth_header.starts_with("Bearer ") {
+                return Err(AppError::Unauthorized);
+            }
+            auth_header[7..].trim().to_string()
+        } else if let Some(cookie_header) = parts
+            .headers
+            .get(header::COOKIE)
+            .and_then(|header| header.to_str().ok())
+        {
+            cookie_header
+                .split(';')
+                .map(|s| s.trim())
+                .find(|s| s.starts_with("access_token="))
+                .map(|s| s["access_token=".len()..].to_string())
+                .ok_or(AppError::Unauthorized)?
+        } else {
             return Err(AppError::Unauthorized);
-        }
-        let token = auth_header[7..].trim();
+        };
+
         let key = HS256Key::from_bytes(state.jwt_secret.as_bytes());
         let claims = key
-            .verify_token::<NoCustomClaims>(token, None)
+            .verify_token::<NoCustomClaims>(&token, None)
             .map_err(|_| AppError::Unauthorized)?;
         Ok(AuthenticatedUser(
             claims.subject.ok_or(AppError::Unauthorized)?,

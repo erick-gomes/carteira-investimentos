@@ -44,7 +44,7 @@ pub enum AppError {
     #[error("Não autorizado")]
     Unauthorized,
 
-    #[error("Usuários não existe.")]
+    #[error("Usuário não existe.")]
     UserIsNotExists,
 }
 

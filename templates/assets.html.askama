@@ -1,12 +1,412 @@
 {% extends "layout.html.askama" %}
 
-{% block title %}Meus ativos{% endblock %}
+{% block title %}Meus Ativos | Carteira.io{% endblock %}
 
 {% block content %}
-<h1>Meus ativos</h1>
-<ul>
-{% for asset in assets %}
-    <li>{{ asset.name }} ({{ asset.ticker }}) - {{ asset.quantity_raw }} unidades</li>
-{% endfor %}
-</ul>
+<div class="glass-card" style="width: 100%; padding: 2.5rem; position: relative;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="margin-bottom: 0.25rem;">Seus Ativos Cadastrados</h1>
+            <p style="margin-bottom: 0; font-size: 0.95rem;">Visão geral consolidada dos seus investimentos</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span class="status-badge" style="font-size: 0.85rem; padding: 0.5rem 1rem; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 2rem; color: #818cf8; font-weight: 700;">
+                Atualizado em tempo real
+            </span>
+            <button onclick="openCreateModal()" class="btn" style="padding: 0.6rem 1.25rem; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Adicionar Ativo
+            </button>
+        </div>
+    </div>
+
+    {% if assets.is_empty() %}
+        <div style="text-align: center; padding: 5rem 2rem; background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.1); border-radius: 1.25rem;">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1.5rem; display: inline-block; color: var(--primary);"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <h3 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-main);">Nenhum ativo cadastrado</h3>
+            <p style="margin-bottom: 2rem; font-size: 0.95rem; color: var(--text-muted); max-width: 420px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+                Sua carteira está vazia. Comece a adicionar seus investimentos em ações, renda fixa, criptomoedas e muito mais.
+            </p>
+            <button onclick="openCreateModal()" class="btn" style="padding: 0.75rem 1.75rem;">
+                Cadastrar Meu Primeiro Ativo
+            </button>
+        </div>
+    {% else %}
+        <div style="overflow-x: auto; width: 100%; border-radius: 0.75rem; border: 1px solid var(--card-border);">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+                <thead>
+                    <tr style="background: rgba(255, 255, 255, 0.04); border-bottom: 1px solid var(--card-border);">
+                        <th style="padding: 1.1rem 1.5rem; color: var(--text-main); font-weight: 700;">Ativo</th>
+                        <th style="padding: 1.1rem 1.5rem; color: var(--text-main); font-weight: 700;">Categoria</th>
+                        <th style="padding: 1.1rem 1.5rem; color: var(--text-main); font-weight: 700; text-align: right;">Quantidade</th>
+                        <th style="padding: 1.1rem 1.5rem; color: var(--text-main); font-weight: 700; text-align: right;">Preço Médio</th>
+                        <th style="padding: 1.1rem 1.5rem; color: var(--text-main); font-weight: 700; text-align: right;">Total Investido</th>
+                        <th style="padding: 1.1rem 1.5rem; color: var(--text-main); font-weight: 700; text-align: center;">Última Aquisição</th>
+                        <th style="padding: 1.1rem 1.5rem; color: var(--text-main); font-weight: 700; text-align: center;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asset in assets %}
+                        <tr class="table-row" style="border-bottom: 1px solid var(--card-border); transition: background-color 0.2s ease;">
+                            <td style="padding: 1.1rem 1.5rem; font-weight: 600; color: var(--text-main);">
+                                <div style="display: flex; flex-direction: column;">
+                                    <span>{{ asset.name }}</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; font-family: monospace; margin-top: 0.15rem; text-transform: uppercase;">
+                                        {{ asset.ticker }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td style="padding: 1.1rem 1.5rem;">
+                                <span class="category-badge" style="display: inline-block; font-size: 0.8rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 2rem; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); color: #a5b4fc;">
+                                    {{ asset.category }}
+                                </span>
+                            </td>
+                            <td style="padding: 1.1rem 1.5rem; text-align: right; font-weight: 600; font-family: monospace;">{{ asset.quantity }}</td>
+                            <td style="padding: 1.1rem 1.5rem; text-align: right; font-weight: 600; color: #22d3ee; font-family: monospace;">{{ asset.average_price }}</td>
+                            <td style="padding: 1.1rem 1.5rem; text-align: right; font-weight: 700; color: #34d399; font-family: monospace;">{{ asset.total_invested }}</td>
+                            <td style="padding: 1.1rem 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                                {{ asset.last_acquisition_date }}
+                            </td>
+                            <td style="padding: 1.1rem 1.5rem; text-align: center;">
+                                <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                                    <button 
+                                        class="btn btn-secondary edit-btn" 
+                                        style="padding: 0.4rem 0.8rem; font-size: 0.8rem; font-weight: 600;"
+                                        data-id="{{ asset.id }}"
+                                        data-name="{{ asset.name }}"
+                                        data-ticker="{{ asset.ticker }}"
+                                        data-category="{{ asset.category }}"
+                                        data-currency="{{ asset.currency }}"
+                                        data-quantity="{{ asset.quantity }}"
+                                        data-price="{{ asset.average_price }}"
+                                        data-date="{{ asset.last_acquisition_date }}"
+                                    >
+                                        Editar
+                                    </button>
+                                    <button 
+                                        onclick="deleteAsset('{{ asset.id }}')" 
+                                        class="btn" 
+                                        style="padding: 0.4rem 0.8rem; font-size: 0.8rem; font-weight: 600; background: var(--danger); box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.2);"
+                                    >
+                                        Excluir
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Glassmorphic Premium Modal -->
+<div id="assetModal" class="modal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem;">
+            <h2 id="modalTitle" style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.6rem; background: linear-gradient(135deg, #ffffff, #cbd5e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Cadastrar Ativo</h2>
+            <button onclick="closeModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#f8fafc'" onmouseout="this.style.color='var(--text-muted)'">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+
+        <form id="assetForm" onsubmit="saveAsset(event)">
+            <input type="hidden" id="assetId" value="" />
+
+            <div class="form-group">
+                <label for="modalName">Nome do Ativo</label>
+                <input type="text" id="modalName" placeholder="Ex: Tesouro Selic 2029, Ações Petrobras" required />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="modalTicker">Ticker (Opcional)</label>
+                    <input type="text" id="modalTicker" placeholder="Ex: PETR4, AAPL" />
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="modalCategory">Categoria</label>
+                    <select id="modalCategory" required>
+                        <option value="Ações">Ações</option>
+                        <option value="FIIs">FIIs</option>
+                        <option value="Renda Fixa">Renda Fixa</option>
+                        <option value="Cripto">Cripto</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="modalCurrency">Moeda</label>
+                    <select id="modalCurrency" required>
+                        <option value="BRL">BRL (R$)</option>
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="modalDate">Data de Aquisição</label>
+                    <input type="date" id="modalDate" required />
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="modalQuantity">Quantidade</label>
+                    <input type="number" step="any" min="0.000001" id="modalQuantity" placeholder="0.00" required />
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="modalAveragePrice">Preço Médio</label>
+                    <input type="number" step="any" min="0.00" id="modalAveragePrice" placeholder="0.00" required />
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" onclick="closeModal()" class="btn btn-secondary" style="padding: 0.7rem 1.5rem;">Cancelar</button>
+                <button type="submit" id="submitBtn" class="btn" style="padding: 0.7rem 1.5rem;">Salvar Ativo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .table-row:hover {
+        background: rgba(255, 255, 255, 0.02) !important;
+    }
+
+    /* Modal Backdrop style */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1000;
+        background: rgba(9, 10, 15, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+
+    .modal.active {
+        display: flex;
+        opacity: 1;
+    }
+
+    /* Modal Content Card */
+    .modal-content {
+        background: rgba(20, 25, 45, 0.95);
+        border: 1px solid var(--card-border);
+        border-radius: 1.5rem;
+        width: 100%;
+        max-width: 520px;
+        padding: 2.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+        transform: scale(0.92);
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        text-align: left;
+    }
+
+    .modal.active .modal-content {
+        transform: scale(1);
+    }
+
+    select {
+        width: 100%;
+        background: rgba(9, 10, 15, 0.6);
+        border: 1px solid var(--card-border);
+        border-radius: 0.75rem;
+        padding: 0.85rem 1rem;
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1.25rem;
+    }
+
+    select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        background: rgba(9, 10, 15, 0.8);
+    }
+</style>
+
+<script>
+    // Open modal to create a new asset
+    function openCreateModal() {
+        document.getElementById("modalTitle").innerText = "Cadastrar Ativo";
+        document.getElementById("submitBtn").innerText = "Cadastrar";
+        document.getElementById("assetId").value = "";
+        document.getElementById("assetForm").reset();
+        
+        // Default last acquisition date to today
+        document.getElementById("modalDate").value = new Date().toISOString().split('T')[0];
+
+        let modal = document.getElementById("assetModal");
+        modal.style.display = "flex";
+        setTimeout(() => modal.classList.add("active"), 10);
+    }
+
+    // Open modal to edit an existing asset
+    function openEditModal(id, name, ticker, category, currency, quantity, price, date) {
+        document.getElementById("modalTitle").innerText = "Editar Ativo";
+        document.getElementById("submitBtn").innerText = "Salvar Alterações";
+        document.getElementById("assetId").value = id;
+        document.getElementById("modalName").value = name;
+        
+        // Clean ticker
+        document.getElementById("modalTicker").value = ticker === "Sem Ticker" ? "" : ticker;
+        document.getElementById("modalCategory").value = category;
+        document.getElementById("modalCurrency").value = currency;
+        
+        // Clean quantity (remove separators)
+        document.getElementById("modalQuantity").value = parseFloat(quantity.replace(/[^0-9.]/g, ''));
+        
+        // Clean price
+        let cleanPrice = price.replace("R$ ", "").replace("$ ", "").replace("€ ", "").replace(",", "").trim();
+        document.getElementById("modalAveragePrice").value = parseFloat(cleanPrice);
+
+        // Convert date DD/MM/YYYY to YYYY-MM-DD
+        let dateParts = date.split("/");
+        if (dateParts.length === 3) {
+            document.getElementById("modalDate").value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+        } else {
+            document.getElementById("modalDate").value = "";
+        }
+
+        let modal = document.getElementById("assetModal");
+        modal.style.display = "flex";
+        setTimeout(() => modal.classList.add("active"), 10);
+    }
+
+    // Close modal
+    function closeModal() {
+        let modal = document.getElementById("assetModal");
+        modal.classList.remove("active");
+        setTimeout(() => modal.style.display = "none", 250);
+    }
+
+    // Close modal on clicking outside content
+    window.addEventListener('click', (e) => {
+        let modal = document.getElementById('assetModal');
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    // Handle form submit for create / edit
+    async function saveAsset(event) {
+        event.preventDefault();
+
+        let id = document.getElementById("assetId").value;
+        let name = document.getElementById("modalName").value;
+        let tickerVal = document.getElementById("modalTicker").value.trim();
+        let ticker = tickerVal ? tickerVal : null;
+        let category = document.getElementById("modalCategory").value;
+        let currency = document.getElementById("modalCurrency").value;
+        let quantity = parseFloat(document.getElementById("modalQuantity").value);
+        let averagePrice = parseFloat(document.getElementById("modalAveragePrice").value);
+        let date = document.getElementById("modalDate").value;
+
+        // Scale by 100 to obtain raw/cents integers
+        let quantity_raw = Math.round(quantity * 100);
+        let average_price_cents = Math.round(averagePrice * 100);
+
+        let url = id ? `/api/v1/assets/${id}` : '/api/v1/assets';
+        let method = id ? 'PATCH' : 'POST';
+
+        let body = id ? {
+            name: name,
+            category: category,
+            quantity_raw: quantity_raw,
+            average_price_cents: average_price_cents,
+            last_acquisition_date: date
+        } : {
+            name,
+            category,
+            currency,
+            ticker,
+            quantity_raw,
+            average_price_cents,
+            last_acquisition_date: date
+        };
+
+        try {
+            let res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                closeModal();
+                window.location.reload();
+            } else {
+                let errText = await res.text();
+                let errMsg = "Erro desconhecido";
+                try {
+                    let errObj = JSON.parse(errText);
+                    errMsg = errObj.message || JSON.stringify(errObj);
+                } catch(e) {
+                    errMsg = errText;
+                }
+                alert("Erro ao salvar ativo: " + errMsg);
+            }
+        } catch (e) {
+            alert("Erro de rede ao conectar no servidor: " + e);
+        }
+    }
+
+    // Handle delete action
+    async function deleteAsset(id) {
+        if (!confirm("Deseja realmente excluir este ativo da sua carteira? Esta ação é irreversível.")) {
+            return;
+        }
+
+        try {
+            let res = await fetch(`/api/v1/assets/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                let errText = await res.text();
+                alert("Erro ao excluir ativo: " + errText);
+            }
+        } catch (e) {
+            alert("Erro de rede ao excluir ativo: " + e);
+        }
+    }
+
+    // Attach click listeners to all Edit buttons safely using data attributes
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".edit-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                let id = btn.getAttribute("data-id");
+                let name = btn.getAttribute("data-name");
+                let ticker = btn.getAttribute("data-ticker");
+                let category = btn.getAttribute("data-category");
+                let currency = btn.getAttribute("data-currency");
+                let quantity = btn.getAttribute("data-quantity");
+                let price = btn.getAttribute("data-price");
+                let date = btn.getAttribute("data-date");
+                openEditModal(id, name, ticker, category, currency, quantity, price, date);
+            });
+        });
+    });
+</script>
 {% endblock %}

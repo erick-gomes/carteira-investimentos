@@ -18,8 +18,16 @@ pub fn generate_hash(password: &str) -> Result<String, anyhow::Error> {
 }
 
 pub fn verify_password(password: &str, password_hash: &str) -> Result<bool, anyhow::Error> {
+    let password_hash = match PasswordHash::new(password_hash) {
+        Ok(hash) => hash,
+        Err(error) => {
+            tracing::error!("Hash de senha inválido: {:?}", error);
+            return Ok(false);
+        }
+    };
+
     let argon2 = Argon2::default();
-    match argon2.verify_password(password.as_bytes(), &PasswordHash::new(&password_hash)?) {
+    match argon2.verify_password(password.as_bytes(), &password_hash) {
         Ok(_) => Ok(true),
         Err(argon2::password_hash::Error::Password) => Ok(false),
         Err(error) => {

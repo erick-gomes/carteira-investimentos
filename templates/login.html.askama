@@ -1,15 +1,32 @@
 {% extends "layout.html.askama" %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Entrar | Carteira.io{% endblock %}
 
 {% block content %}
-<h1>Login</h1>
-{% if error != "" %}
-    <p style="color:red;">{{ error }}</p>
-{% endif %}
-<form action="/login" method="post">
-    <label>Usuário:<br/><input name="username" required/></label><br/>
-    <label>Senha:<br/><input type="password" name="password" required/></label><br/>
-    <button type="submit">Entrar</button>
-</form>
+<div class="glass-card" style="max-width: 480px; margin: 0 auto; text-align: center;">
+    <h1 style="margin-bottom: 0.5rem;">Acesse sua Conta</h1>
+    <p style="margin-bottom: 2rem; font-size: 0.95rem;">Entre com seus dados para acessar sua carteira de investimentos</p>
+
+    {% if error != "" %}
+        <div class="alert-error">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form action="/login" method="post">
+        <div class="form-group">
+            <label for="username">Nome de Usuário</label>
+            <input type="text" id="username" name="username" placeholder="Digite seu usuário" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 2rem;">
+            <label for="password">Senha</label>
+            <input type="password" id="password" name="password" placeholder="Digite sua senha" required />
+        </div>
+        <button type="submit" class="btn" style="width: 100%;">Entrar na Carteira</button>
+    </form>
+    
+    <div style="margin-top: 1.75rem; font-size: 0.9rem; color: var(--text-muted);">
+        Ainda não possui uma conta? <a href="/register" style="color: #818cf8; text-decoration: none; font-weight: 700;">Cadastre-se</a>
+    </div>
+</div>
 {% endblock %}
